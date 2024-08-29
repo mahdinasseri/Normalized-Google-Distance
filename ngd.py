@@ -59,7 +59,7 @@ def NGD(w1, w2, lan='en'):
     f_w2 = math.log(number_of_results(w2),2)
     f_w1_w2 = math.log(number_of_results(w1+" "+w2),2)
     NGD = (max(f_w1,f_w2) - f_w1_w2) / (N - min(f_w1,f_w2))
-    print(" >> ",w1,f_w1,"\t",w2,f_w2,"\tboth:",f_w1_w2,"\t NGD:",NGD)
+    #print(" >> ",w1,f_w1,"\t",w2,f_w2,"\tboth:",f_w1_w2,"\t NGD:",NGD)
     return NGD
   else: 
     return 0
@@ -87,7 +87,7 @@ def calculate_NGD(w1, w2, n_retries=10,lan='en'):
     try:
       return NGD(w1, w2,lan)
     except Exception as e:
-      print("Trying again...")
+      #print("Trying again...")
       print(e)
   else: 
     print("Sorry. We tried and failed. Returning NaN.")
@@ -100,7 +100,7 @@ def pairwise_NGD(element_list, retries=10,lan='en'):
     sleep(10, 15)
     for j in element_list:
       try: # See if we already calculated NGD(j, i)
-        print("Searching for:", i, j)
+        #print("Searching for:", i, j)
         distance_matrix[i][j] = distance_matrix[j][i]
       except KeyError: # If not, calculate NGD(i, j)
         distance_matrix[i][j] = calculate_NGD(i, j, retries, lan)
@@ -155,7 +155,7 @@ def get_search_results_count(query):
     
     response = requests.get(url, params=params)
     data = response.json()
-    print(data)
+    #print(data)
     #print(query, int(data['searchInformation']['totalResults']))
     return int(data['searchInformation']['totalResults'])
 
@@ -182,32 +182,9 @@ def get_random_words(n=2):
   for i in range(n):
     rand = int(random.Random().uniform(0,len(dic))) 
     word_list.append(dic.iloc[rand][0])
-  print(word_list)
+  #print(word_list)
   return word_list
 
-term_x = "دین"
-term_y = "خدا"
-
-#print(number_of_results(term_y))
-
-#ngd_value = calculate_NGD(term_x, term_y, lan='fa')
-#print(f"NGD for {term_x} and {term_y}: {ngd_value}")
-
-element_list = ['Cobalt', 'Eclipse', 'Zephyr','Cascade']
-element_list = ['Parachute', 'Sphinx', 'Almond','Galaxy']
-element_list = ['Toaster', 'Umbrella', 'Notebook','Cucumber']
-element_list = ['Chapter', 'Author', 'Page','Library']
-#element_list = ['book','Submarine', 'Volcano', 'Avocado','Wrench']
-#element_list = ['قاشق', 'رعد', 'کتابخانه', 'آتش‌فشان']
-#element_list = ['کفش','ابر','پیچ‌گوشتی','خرس']
-#element_list = ['کتاب','مجله','دفتر','مقاله']
-#element_list = ['حساب','ناگهان','باران', 'نیاز']
-
-
-element_list = get_random_words(n=2)
-
-matrix = pairwise_NGD(element_list, lan='en')
-vis_heatmap(matrix)
 
 if __name__ == "__main__":
   print("This is a script for calculating NGD.")
