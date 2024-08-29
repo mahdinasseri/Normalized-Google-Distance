@@ -5,6 +5,21 @@ import math, sys, time, random, collections
 import numpy as np
 import pandas as pd
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+from collections import defaultdict
+
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+# Now you can access your variables like this:
+API_KEY = os.getenv('API_KEY')
+CX = os.getenv('CX')
+
+
 """ 
 A python script to calculate Normalized Google Distance 
 
@@ -20,7 +35,7 @@ page, but do occur separately, the NGD between them is infinite.
 If both terms always (and only) occur together, their NGD is zero.
 """
 
-def NGD(w1, w2):
+def NGD(w1, w2, lan='en'):
   """
   Returns the Normalized Google Distance between two queries.
 
@@ -30,7 +45,14 @@ def NGD(w1, w2):
   Returns:
    NGD (float)
   """
-  N = 25270000000.0 # Number of results for "the", proxy for total pages
+  N_en = 51930000000.0 # Number of results for "the", proxy for total pages
+  N_fa = 4710000000.0 # Number of results for "و", proxy for total pages
+  
+  if lan == 'fa':
+    N = N_fa
+  else: 
+    N = N_en
+
   N = math.log(N,2) 
   if w1 != w2:
     f_w1 = math.log(number_of_results(w1),2)
@@ -41,7 +63,7 @@ def NGD(w1, w2):
   else: 
     return 0
  
-def calculate_NGD(w1, w2, n_retries=10):
+def calculate_NGD(w1, w2, n_retries=10,lan='en'):
   """ 
   Attempt to calculate NGD. 
 
@@ -62,7 +84,7 @@ def calculate_NGD(w1, w2, n_retries=10):
 
   for attempt in range(n_retries):
     try:
-      return NGD(w1, w2)
+      return NGD(w1, w2,lan)
     except Exception as e:
       print("Trying again...")
       print(e)
@@ -70,17 +92,17 @@ def calculate_NGD(w1, w2, n_retries=10):
     print("Sorry. We tried and failed. Returning NaN.")
     return np.NaN
 
-def pairwise_NGD(element_list, retries=10):
+def pairwise_NGD(element_list, retries=10,lan='en'):
   """Compute pairwise NGD for a list of terms"""
   distance_matrix = collections.defaultdict(dict) # init a nested dict
   for i in element_list:
-    sleep(5, 10)
+    sleep(15, 20)
     for j in element_list:
       try: # See if we already calculated NGD(j, i)
-        print(i, j)
+        print("Searching for:", i, j)
         distance_matrix[i][j] = distance_matrix[j][i]
       except KeyError: # If not, calculate NGD(i, j)
-        distance_matrix[i][j] = calculate_NGD(i, j, retries)
+        distance_matrix[i][j] = calculate_NGD(i, j, retries, lan)
   return distance_matrix
 
 def pairwise_NGD_to_df(distances):
@@ -92,6 +114,12 @@ def pairwise_NGD_to_df(distances):
   df.index = distances
   return df 
 
+
+def sleep(alpha, beta):
+  """Sleep for an amount of time in range(alpha, beta)"""
+  rand = random.Random()
+  time.sleep(rand.uniform(alpha, beta))
+
 def number_of_results(text):
   """Returns the number of Google results for a given query."""
   headers = {'User-Agent': UserAgent().firefox}
@@ -101,10 +129,74 @@ def number_of_results(text):
   res = soup.find('div', {'id': 'result-stats'}) # Find result string 
   return int(res.text.replace(",", "").split()[1]) # Return result int
 
-def sleep(alpha, beta):
-  """Sleep for an amount of time in range(alpha, beta)"""
-  rand = random.Random()
-  time.sleep(rand.uniform(alpha, beta))
+
+def get_search_results_count(query):
+    """
+    Fetch the number of search results for a query using Google Custom Search API.
+    
+    Parameters:
+    api_key (str): Your Google API key.
+    cx (str): The Custom Search Engine ID.
+    query (str): The search query.
+    
+    Returns:
+    int: The number of search results.
+    """
+    
+
+    url = "https://www.googleapis.com/customsearch/v1"
+    params = {
+        'key': API_KEY,
+        'cx': CX,
+        'q': query,
+        'num': 1  # We're only interested in the result count, not the actual results
+    }
+    
+    response = requests.get(url, params=params)
+    data = response.json()
+    print(data)
+    #print(query, int(data['searchInformation']['totalResults']))
+    return int(data['searchInformation']['totalResults'])
+
+
+def vis_heatmap(matrix):
+  # Convert defaultdict to pandas DataFrame
+  df = pd.DataFrame(matrix)
+
+  # Create the heatmap using seaborn
+  plt.figure(figsize=(8, 6))
+  sns.heatmap(df, annot=True, cmap='Reds', linewidths=.5)
+
+  # Add labels and title
+  plt.title('Heatmap of Similarities')
+  plt.xlabel('')
+  plt.ylabel('')
+
+  # Display the heatmap
+  plt.show()
+
+
+
+term_x = "دین"
+term_y = "خدا"
+
+#print(number_of_results(term_y))
+
+#ngd_value = calculate_NGD(term_x, term_y, lan='fa')
+#print(f"NGD for {term_x} and {term_y}: {ngd_value}")
+
+element_list = ['Cobalt', 'Eclipse', 'Zephyr','Cascade']
+element_list = ['Parachute', 'Sphinx', 'Almond','Galaxy']
+element_list = ['Toaster', 'Umbrella', 'Notebook','Cucumber']
+element_list = ['Chapter', 'Author', 'Page','Library']
+element_list = ['book','Submarine', 'Volcano', 'Avocado','Wrench']
+element_list = ['قاشق', 'رعد', 'کتابخانه', 'آتش‌فشان']
+element_list = ['کفش','ابر','پیچ‌گوشتی','خرس']
+element_list = ['کتاب','مجله','دفتر','مقاله']
+element_list = ['حساب','ناگهان','باران', 'نیاز']
+
+matrix = pairwise_NGD(element_list, lan='fa')
+vis_heatmap(matrix)
 
 if __name__ == "__main__":
   print("This is a script for calculating NGD.")
