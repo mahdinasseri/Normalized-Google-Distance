@@ -59,6 +59,7 @@ def NGD(w1, w2, lan='en'):
     f_w2 = math.log(number_of_results(w2),2)
     f_w1_w2 = math.log(number_of_results(w1+" "+w2),2)
     NGD = (max(f_w1,f_w2) - f_w1_w2) / (N - min(f_w1,f_w2))
+    print(" >> ",w1,f_w1,"\t",w2,f_w2,"\tboth:",f_w1_w2,"\t NGD:",NGD)
     return NGD
   else: 
     return 0
@@ -96,7 +97,7 @@ def pairwise_NGD(element_list, retries=10,lan='en'):
   """Compute pairwise NGD for a list of terms"""
   distance_matrix = collections.defaultdict(dict) # init a nested dict
   for i in element_list:
-    sleep(15, 20)
+    sleep(10, 15)
     for j in element_list:
       try: # See if we already calculated NGD(j, i)
         print("Searching for:", i, j)
@@ -175,7 +176,14 @@ def vis_heatmap(matrix):
   # Display the heatmap
   plt.show()
 
-
+def get_random_words(n=2):
+  word_list = []
+  dic = pd.read_csv('english_dictionary_extended.csv')[['word']].drop_duplicates().reset_index(drop=True)
+  for i in range(n):
+    rand = int(random.Random().uniform(0,len(dic))) 
+    word_list.append(dic.iloc[rand][0])
+  print(word_list)
+  return word_list
 
 term_x = "دین"
 term_y = "خدا"
@@ -189,13 +197,16 @@ element_list = ['Cobalt', 'Eclipse', 'Zephyr','Cascade']
 element_list = ['Parachute', 'Sphinx', 'Almond','Galaxy']
 element_list = ['Toaster', 'Umbrella', 'Notebook','Cucumber']
 element_list = ['Chapter', 'Author', 'Page','Library']
-element_list = ['book','Submarine', 'Volcano', 'Avocado','Wrench']
-element_list = ['قاشق', 'رعد', 'کتابخانه', 'آتش‌فشان']
-element_list = ['کفش','ابر','پیچ‌گوشتی','خرس']
-element_list = ['کتاب','مجله','دفتر','مقاله']
-element_list = ['حساب','ناگهان','باران', 'نیاز']
+#element_list = ['book','Submarine', 'Volcano', 'Avocado','Wrench']
+#element_list = ['قاشق', 'رعد', 'کتابخانه', 'آتش‌فشان']
+#element_list = ['کفش','ابر','پیچ‌گوشتی','خرس']
+#element_list = ['کتاب','مجله','دفتر','مقاله']
+#element_list = ['حساب','ناگهان','باران', 'نیاز']
 
-matrix = pairwise_NGD(element_list, lan='fa')
+
+element_list = get_random_words(n=2)
+
+matrix = pairwise_NGD(element_list, lan='en')
 vis_heatmap(matrix)
 
 if __name__ == "__main__":
