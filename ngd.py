@@ -59,7 +59,7 @@ def NGD(w1, w2, lan='en'):
     f_w2 = math.log(number_of_results(w2),2)
     f_w1_w2 = math.log(number_of_results(w1+" "+w2),2)
     NGD = (max(f_w1,f_w2) - f_w1_w2) / (N - min(f_w1,f_w2))
-    #print(" >> ",w1,f_w1,"\t",w2,f_w2,"\tboth:",f_w1_w2,"\t NGD:",NGD)
+    print(" >> ",w1,f_w1,"\t",w2,f_w2,"\tboth:",f_w1_w2,"\t NGD:",NGD)
     return NGD
   else: 
     return 0
